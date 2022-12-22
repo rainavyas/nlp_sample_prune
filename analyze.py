@@ -13,6 +13,7 @@ if __name__ == "__main__":
     commandLineParser.add_argument('--data_name', type=str, required=True, help='e.g. rt')
     commandLineParser.add_argument('--data_dir_path', type=str, required=False, help='path to data directory, e.g. data')
     commandLineParser.add_argument('--prune_method', required=False, type=str, help="How to prune each sample")
+    commandLineParser.add_argument('--kept_pos', type=str, default=['N', 'V', 'A', 'D'], nargs='+', help="If prune method is pos, specifiy pos to keep")
     args = commandLineParser.parse_args()
 
     # Save the command run
@@ -22,7 +23,7 @@ if __name__ == "__main__":
         f.write(' '.join(sys.argv)+'\n')
 
     # Load the training data
-    _, train_data = select_data(args, train=True, prune_method=args.prune_method)
+    _, train_data = select_data(args, train=True, prune_method=args.prune_method, kept_pos=args.kept_pos)
 
     # Load tokenizer
     model = select_model(args.model_name)

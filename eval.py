@@ -21,6 +21,7 @@ if __name__ == "__main__":
     commandLineParser.add_argument('--bs', type=int, default=8, help="Specify batch size")
     commandLineParser.add_argument('--force_cpu', action='store_true', help='force cpu use')
     commandLineParser.add_argument('--prune_method', type=str, required=False, help="How to prune each sample")
+    commandLineParser.add_argument('--kept_pos', type=str, default=['N', 'V', 'A', 'D'], nargs='+', help="If prune method is pos, specifiy pos to keep")
     commandLineParser.add_argument('--num_seeds', type=int, default=1, help="Specify number of seeds for model to load")
     commandLineParser.add_argument('--num_classes', type=int, default=2, help="Specify number of classes")
     args = commandLineParser.parse_args()
@@ -38,7 +39,7 @@ if __name__ == "__main__":
         device = get_default_device()
 
     # Load the test data
-    data = select_data(args, train=False, prune_method=args.prune_method)
+    data = select_data(args, train=False, prune_method=args.prune_method, kept_pos=args.kept_pos)
     dl = Trainer.prep_dl(select_model(args.model_name), data, bs=args.bs, shuffle=False)
 
     # Load models

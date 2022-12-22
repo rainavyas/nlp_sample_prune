@@ -24,15 +24,20 @@ if __name__ == "__main__":
     commandLineParser.add_argument('--num_classes', type=int, default=2, help="Specify number of classes")
     commandLineParser.add_argument('--force_cpu', action='store_true', help='force cpu use')
     commandLineParser.add_argument('--prune_method', required=False, type=str, help="How to prune each sample")
+    commandLineParser.add_argument('--kept_pos', type=str, default=['N', 'V', 'A', 'D'], nargs='+', help="If prune method is pos, specifiy pos to keep")
     commandLineParser.add_argument('--prune_val', action='store_true', help='prune validation data too')
     commandLineParser.add_argument('--not_pretrained', action='store_true', help='do not use pretrained_model')
     args = commandLineParser.parse_args()
 
     set_seeds(args.seed)
+    # file naming
     if args.prune_method:
         out_file = f'{args.out_dir}/{args.model_name}_{args.data_name}_prune_{args.prune_method}_pretrained{not args.not_pretrained}_pruneval{args.prune_val}_seed{args.seed}.th'
+        if args.prune_method == 'pos':
+            pos = ''.join(args.kept_pos)
+            out_file = f'{args.out_dir}/{args.model_name}_{args.data_name}_prune_{args.prune_method}-{pos}_pretrained{not args.not_pretrained}_pruneval{args.prune_val}_seed{args.seed}.th'
     else:
-        out_file = f'{args.out_dir}/{args.model_name}_{args.data_name}_pretrained{not args.not_pretrained}_pruneval{args.prune_val}_seed{args.seed}.th'
+        out_file = f'{args.out_dir}/{args.model_name}_{args.data_name}_pretrained{not args.not_pretrained}_seed{args.seed}.th'
 
     # Save the command run
     if not os.path.isdir('CMDs'):
@@ -47,7 +52,7 @@ if __name__ == "__main__":
         device = get_default_device()
 
     # Load the training data
-    val_data, train_data = select_data(args, train=True, prune_method=args.prune_method, prune_val=args.prune_val)
+    val_data, train_data = select_data(args, train=True, prune_method=args.prune_method, prune_val=args.prune_val, kept_pos=args.kept_pos)
 
     # Initialise model
     model = select_model(args.model_name, pretrained=not args.not_pretrained, num_labels=args.num_classes)
