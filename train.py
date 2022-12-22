@@ -21,6 +21,7 @@ if __name__ == "__main__":
     commandLineParser.add_argument('--lr', type=float, default=0.00001, help="Specify learning rate")
     commandLineParser.add_argument('--sch', type=int, default=[3], nargs='+', help="Specify scheduler cycle, e.g. 10 100 1000")
     commandLineParser.add_argument('--seed', type=int, default=1, help="Specify seed")
+    commandLineParser.add_argument('--num_classes', type=int, default=2, help="Specify number of classes")
     commandLineParser.add_argument('--force_cpu', action='store_true', help='force cpu use')
     commandLineParser.add_argument('--prune_method', required=False, type=str, help="How to prune each sample")
     commandLineParser.add_argument('--prune_val', action='store_true', help='prune validation data too')
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     val_data, train_data = select_data(args, train=True, prune_method=args.prune_method, prune_val=args.prune_val)
 
     # Initialise model
-    model = select_model(args.model_name, pretrained=not args.not_pretrained)
+    model = select_model(args.model_name, pretrained=not args.not_pretrained, num_labels=args.num_classes)
     model.to(device)
 
     # Define learning objects

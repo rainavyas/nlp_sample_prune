@@ -30,11 +30,11 @@ def _load_twitter(cache_dir, lim:int=None)->List[Dict['text', 'label']]:
     # Source: https://www.kaggle.com/datasets/parulpandey/emotion-dataset?select=test.csv
     base_path = f'{cache_dir}/twitter/'
     CLASS_TO_IND = {
-        '2': 1, # love
+        '2': 2, # love
         '1': 1, # joy
-        '4': 0, # fear
-        '3': 0, # anger
-        '5': 1, # surprise
+        '4': 4, # fear
+        '3': 3, # anger
+        '5': 5, # surprise
         '0': 0, # sadness
     }
     train = _read_file(f'{base_path}training.csv', CLASS_TO_IND)

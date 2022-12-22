@@ -22,6 +22,7 @@ if __name__ == "__main__":
     commandLineParser.add_argument('--force_cpu', action='store_true', help='force cpu use')
     commandLineParser.add_argument('--prune_method', type=str, required=False, help="How to prune each sample")
     commandLineParser.add_argument('--num_seeds', type=int, default=1, help="Specify number of seeds for model to load")
+    commandLineParser.add_argument('--num_classes', type=int, default=2, help="Specify number of classes")
     args = commandLineParser.parse_args()
 
     # Save the command run
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 
     # Load models
     model_paths = [f'{args.model_path_base}{i}.th' for i in range(1, args.num_seeds+1)]
-    ens_model = Ensemble(args.model_name, model_paths, device)
+    ens_model = Ensemble(args.model_name, model_paths, device, num_labels=args.num_classes)
 
     # Evaluate
     criterion = nn.CrossEntropyLoss().to(device)
