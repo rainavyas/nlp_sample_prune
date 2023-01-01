@@ -90,12 +90,13 @@ def _load_cola(cache_dir, lim:int=None)->List[Dict['text', 'label']]:
     return train, val, val
 
 def _load_boolq(cache_dir, lim:int=None)->List[Dict['text', 'label']]:
+    # concatenate passage and text
     dataset = load_dataset("super_glue", "boolq", cache_dir=cache_dir)
     train = list(dataset['train'])[:lim]
     val   = list(dataset['validation'])[:lim]
 
-    train = [_key_to_text(ex, old_key='question') for ex in train]
-    val = [_key_to_text(ex, old_key='question') for ex in val]
+    train = [_multi_key_to_text(ex, 'passage', 'question') for ex in train]
+    val = [_multi_key_to_text(ex, 'passage', 'question') for ex in val]
 
     return train, val, val
 
@@ -139,6 +140,12 @@ def _key_to_text(ex:dict, old_key='content'):
     """ convert key name from the old_key to 'text' """
     ex = ex.copy()
     ex['text'] = ex.pop(old_key)
+    return ex
+
+def _multi_key_to_text(ex:dict, key1:str, key2:str):
+    """concatenate contents of key1 and key2 and map to name text"""
+    ex = ex.copy()
+    ex['text'] = ex.pop(key1) + ' ' + ex.pop(key2)
     return ex
 
 def _invert_labels(ex:dict):
