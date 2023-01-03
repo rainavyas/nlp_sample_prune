@@ -15,7 +15,9 @@ def load_data(data_name:str, cache_dir:str, lim:int=None)->Tuple['train', 'val',
         'yelp'   : _load_yelp,
         'cola'   : _load_cola,
         'boolq'  : _load_boolq,
-        'rte'    : _load_rte
+        'rte'    : _load_rte,
+        'qqp'    : _load_qqp
+
     }
     return data_ret[data_name](cache_dir, lim)
 
@@ -107,6 +109,16 @@ def _load_rte(cache_dir, lim:int=None)->List[Dict['text', 'label']]:
 
     train = [_key_to_text(ex, old_key='hypothesis') for ex in train]
     val = [_key_to_text(ex, old_key='hypothesis') for ex in val]
+
+    return train, val, val
+
+def _load_qqp(cache_dir, lim:int=None)->List[Dict['text', 'label']]:
+    dataset = load_dataset("glue", "qqp", cache_dir=cache_dir)
+    train = list(dataset['train'])[:lim]
+    val   = list(dataset['validation'])[:lim]
+
+    train = [_multi_key_to_text(ex, 'question1', 'question2') for ex in train]
+    val = [_multi_key_to_text(ex, 'question1', 'question2') for ex in val]
 
     return train, val, val
 
