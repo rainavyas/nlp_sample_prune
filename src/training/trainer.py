@@ -1,5 +1,7 @@
 from torch.utils.data import TensorDataset, DataLoader
 import torch 
+import logging
+
 from..tools.tools import AverageMeter, accuracy_topk
 
 
@@ -106,11 +108,12 @@ class Trainer():
 
         best_acc = 0
         for epoch in range(max_epochs):
-
+            logging.info(f'Epoch {epoch} started')
             # train for one epoch
             print('current lr {:.5e}'.format(self.optimizer.param_groups[0]['lr']))
             self.train(train_dl, self.model, self.criterion, self.optimizer, epoch, self.device)
             self.scheduler.step()
+            logging.info(f'Epoch {epoch} finished')
 
             # evaluate on validation set
             acc = self.eval(val_dl, self.model, self.criterion, self.device)
@@ -118,3 +121,4 @@ class Trainer():
                 best_acc = acc
                 state = self.model.state_dict()
                 torch.save(state, save_path)
+            

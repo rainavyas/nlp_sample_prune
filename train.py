@@ -3,10 +3,22 @@ import torch.nn as nn
 import sys
 import os
 import argparse
+import logging
+
 from src.tools.tools import get_default_device, set_seeds
 from src.models.model_selector import select_model
 from src.data.data_selector import select_data
-from src.training.trainer import Trainer
+from src.training.batch_trainer import BatchTrainer
+
+def base_name_creator(args):
+    if args.prune_method:
+        base_name = f'{args.model_name}_{args.data_name}_prune_{args.prune_method}_pretrained{not args.not_pretrained}_pruneval{args.prune_val}_seed{args.seed}'
+        if args.prune_method == 'pos':
+            pos = ''.join(args.kept_pos)
+            base_name = f'{args.model_name}_{args.data_name}_prune_{args.prune_method}-{pos}_pretrained{not args.not_pretrained}_pruneval{args.prune_val}_seed{args.seed}'
+    else:
+        base_name = f'{args.model_name}_{args.data_name}_pretrained{not args.not_pretrained}_seed{args.seed}'
+    return base_name
 
 if __name__ == "__main__":
 
@@ -31,19 +43,21 @@ if __name__ == "__main__":
 
     set_seeds(args.seed)
     # file naming
-    if args.prune_method:
-        out_file = f'{args.out_dir}/{args.model_name}_{args.data_name}_prune_{args.prune_method}_pretrained{not args.not_pretrained}_pruneval{args.prune_val}_seed{args.seed}.th'
-        if args.prune_method == 'pos':
-            pos = ''.join(args.kept_pos)
-            out_file = f'{args.out_dir}/{args.model_name}_{args.data_name}_prune_{args.prune_method}-{pos}_pretrained{not args.not_pretrained}_pruneval{args.prune_val}_seed{args.seed}.th'
-    else:
-        out_file = f'{args.out_dir}/{args.model_name}_{args.data_name}_pretrained{not args.not_pretrained}_seed{args.seed}.th'
+    base_name = base_name_creator(args)
+    out_file = f'{args.out_dir}/{base_name}.th'
 
     # Save the command run
     if not os.path.isdir('CMDs'):
         os.mkdir('CMDs')
     with open('CMDs/train.cmd', 'a') as f:
         f.write(' '.join(sys.argv)+'\n')
+    
+    # Initialise logging
+    if not os.path.isdir('LOGs'):
+        os.mkdir('LOGs')
+    fname = f'LOGs/{base_name}.log'
+    logging.basicConfig(filename=fname, filemode='w', level=logging.INFO, format='%(asctime)s - %(message)s')
+    logging.info('LOG created')
 
     # Get the device
     if args.force_cpu:
@@ -64,5 +78,5 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss().to(device)
 
     # Train
-    trainer = Trainer(device, model, optimizer, criterion, scheduler)
+    trainer = BatchTrainer(device, model, optimizer, criterion, scheduler)
     trainer.train_process(train_data, val_data, out_file, max_epochs=args.epochs, bs=args.bs)
