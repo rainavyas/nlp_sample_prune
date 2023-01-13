@@ -92,7 +92,7 @@ class Trainer():
         '''
         # Get ids and mask
         sentences = [d['text'] for d in data]
-        inputs = model.tokenizer(sentences, padding=True, max_length=512, truncation=True, return_tensors="pt")
+        inputs = model.tokenizer(sentences, padding=True, max_length=model.tokenizer.model_max_length, truncation=True, return_tensors="pt")
         ids = inputs['input_ids']
         mask = inputs['attention_mask']
         y = torch.LongTensor([d['label'] for d in data])

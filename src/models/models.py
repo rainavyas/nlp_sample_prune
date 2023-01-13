@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig, BigBirdForSequenceClassification, BigBirdTokenizer
 import torch.nn as nn
 import torch
 
@@ -7,8 +7,15 @@ class SequenceClassifier(nn.Module):
         super().__init__()
         self.model_name = model_name
         if pretrained:
-            self.model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            if model_name == 'longformer':
+                model_name = "allenai/longformer-base-4096"
+            if model_name == 'bigbird-roberta':
+                model_name = "google/bigbird-roberta-base"
+                self.model = BigBirdForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
+                self.tokenizer = BigBirdTokenizer.from_pretrained(model_name)
+            else:
+                self.model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
+                self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         else:
             config = AutoConfig.from_pretrained(model_name, num_labels=num_labels) # returns config and not pretrained weights 
             self.model = AutoModelForSequenceClassification.from_config(config)

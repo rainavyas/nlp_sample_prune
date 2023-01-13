@@ -27,7 +27,8 @@ class Batcher():
     
     def _batch_tokenize(self, batch, tokenizer):
         sentences = [b['text'] for b in batch]
-        inputs = tokenizer(sentences, padding=True, max_length=512, truncation=True, return_tensors="pt")
+        inputs = tokenizer(sentences, padding=True, max_length=tokenizer.model_max_length, truncation=True, return_tensors="pt")
+        # import pdb; pdb.set_trace()
         ids = inputs['input_ids']
         mask = inputs['attention_mask']
         y = torch.LongTensor([b['label'] for b in batch])
@@ -47,6 +48,7 @@ class Batcher():
             # take previous tensors off device
             x,m,y = self.batches[curr_i-1]
             x=x.cpu(); m=m.cpu(); y=y.cpu()
+            
         if curr_i >= len(self.batches):
             raise StopIteration
         

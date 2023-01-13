@@ -16,7 +16,9 @@ def load_data(data_name:str, cache_dir:str, lim:int=None)->Tuple['train', 'val',
         'cola'   : _load_cola,
         'boolq'  : _load_boolq,
         'rte'    : _load_rte,
-        'qqp'    : _load_qqp
+        'qqp'    : _load_qqp,
+        'qnli'   : _load_qnli,
+        'patent' : _load_patent,
 
     }
     return data_ret[data_name](cache_dir, lim)
@@ -122,6 +124,40 @@ def _load_qqp(cache_dir, lim:int=None)->List[Dict['text', 'label']]:
 
     return train, val, val
 
+def _load_qnli(cache_dir, lim:int=None)->List[Dict['text', 'label']]:
+    dataset = load_dataset("glue", "qnli", cache_dir=cache_dir)
+    train = list(dataset['train'])[:lim]
+    val   = list(dataset['validation'])[:lim]
+
+    train = [_multi_key_to_text(ex, 'question', 'sentence') for ex in train]
+    val = [_multi_key_to_text(ex, 'question', 'sentence') for ex in val]
+
+    return train, val, val
+
+def _load_patent(cache_dir, lim:int=None, filter_train=True)->List[Dict['text', 'label']]:
+    parts = ['a', 'b', 'c', 'd', 'e', 'f']
+    train = []
+    val = []
+    test = []
+    for i,part in enumerate(parts):
+        dataset = load_dataset('big_patent', part) # cache in huggingface cache as it's so large
+        trn = list(dataset['train'])
+        vl = list(dataset['validation'])
+        tst = list(dataset['test'])
+
+        if filter_train:
+            frac = 0.05
+            trn = _rand_sample(trn, frac)
+            vl = _rand_sample(vl, frac)
+
+        trn = [{'text':' '.join(d['description'].split()[:1500]), 'label':i} for d in trn]
+        vl = [{'text':' '.join(d['description'].split()[:1500]), 'label':i} for d in vl]
+        tst = [{'text':' '.join(d['description'].split()[:1500]), 'label':i} for d in tst]
+
+        train += trn
+        val += vl
+        test += tst
+    return train, val, test
 
 def _read_file(filepath, CLASS_TO_IND):
     with open(filepath, 'r') as f:
@@ -169,3 +205,7 @@ def _map_labels(ex:dict, map_dict={-1:0, 1:1}):
     ex = ex.copy()
     ex['label'] = map_dict[ex['label']]
     return ex
+
+def _rand_sample(lst, frac):
+    random.Random(4).shuffle(lst)
+    return lst[:int(len(lst)*frac)]
