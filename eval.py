@@ -8,7 +8,7 @@ from src.tools.tools import get_default_device
 from src.models.ensemble import Ensemble
 from src.models.model_selector import select_model
 from src.data.data_selector import select_data
-from src.training.trainer import BatchTrainer as Trainer
+from src.training.batch_trainer import BatchTrainer as Trainer
 
 if __name__ == "__main__":
 
