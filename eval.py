@@ -4,6 +4,8 @@ from statistics import mean, stdev
 import sys
 import os
 import argparse
+import logging
+
 from src.tools.tools import get_default_device
 from src.models.ensemble import Ensemble
 from src.models.model_selector import select_model
@@ -21,7 +23,7 @@ if __name__ == "__main__":
     commandLineParser.add_argument('--bs', type=int, default=8, help="Specify batch size")
     commandLineParser.add_argument('--force_cpu', action='store_true', help='force cpu use')
     commandLineParser.add_argument('--prune_method', type=str, required=False, help="How to prune each sample")
-    commandLineParser.add_argument('--kept_pos', type=str, default=['N', 'V', 'A', 'D'], nargs='+', help="If prune method is pos, specifiy pos to keep")
+    commandLineParser.add_argument('--kept_pos', type=str, default=['none'], nargs='+', help="If prune method is pos, specifiy pos to keep")
     commandLineParser.add_argument('--num_seeds', type=int, default=1, help="Specify number of seeds for model to load")
     commandLineParser.add_argument('--num_classes', type=int, default=2, help="Specify number of classes")
     args = commandLineParser.parse_args()
@@ -31,6 +33,16 @@ if __name__ == "__main__":
         os.mkdir('CMDs')
     with open('CMDs/eval.cmd', 'a') as f:
         f.write(' '.join(sys.argv)+'\n')
+
+    # Initialise logging
+    mbase = args.model_path_base
+    mbase = mbase.split('/')[-1]
+    base_name = f"eval_{mbase}_EVALTIME-prune{args.prune_method}_kept{''.join(args.kept_pos)}_seeds{args.num_seeds}"
+    if not os.path.isdir('LOGs'):
+        os.mkdir('LOGs')
+    fname = f'LOGs/{base_name}.log'
+    logging.basicConfig(filename=fname, filemode='w', level=logging.INFO, format='%(asctime)s - %(message)s')
+    logging.info('LOG created')
 
     # Get the device
     if args.force_cpu:
@@ -55,3 +67,6 @@ if __name__ == "__main__":
         acc_std = stdev(accs)
         out_str = f'{len(model_paths)} models\nOverall {acc_mean:.3f}+-{acc_std:.3f}'
         print(out_str)
+        logging.info(f'{out_str}')
+    else:
+        logging.info(f'Accuracy Single Seed {accs}')
